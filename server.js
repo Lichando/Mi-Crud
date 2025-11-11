@@ -55,7 +55,7 @@ app.get('/api/materias/:id', (req, res) => {
 const materias = findById(req.params.id);
 if (!materias) {
 // Si no existe, 404 (no encontrado)
-return res.status(404).json({ ok: false, error: 'materia no encontrada' });
+return res.status(404).json({ ok: false, error: 'Materia no encontrada' });
 }
 res.json(materias);
 });
@@ -83,7 +83,7 @@ const materias = findById(req.params.id);
 if (!materias) {
 return res.status(404).json({ ok: false, error: 'Materia no encontrada' });
 }
-if (!validarTareaPayload(req.body)) {
+if (!validarMateriaPayload(req.body)) {
 return res.status(400).json({ ok: false, error: 'El campo "titulo" es obligatorio' });
 }
 // Actualizamos
