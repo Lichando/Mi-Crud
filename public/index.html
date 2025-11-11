@@ -1,0 +1,121 @@
+<!-- public/index.html -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<title>CRUD de Materias (Frontend mínimo)</title>
+<style>
+body { font-family: Arial, sans-serif; max-width: 760px; margin: 24px auto; }
+h1 { margin-bottom: 8px; }
+form, .card { border: 1px solid #ddd; padding: 12px; border-radius: 8px; margin: 8px 0; }
+.fila { display: flex; gap: 8px; align-items: center; }
+.fila input[type="text"] { flex: 1; padding: 6px; }
+.pill { font-size: 12px; padding: 2px 8px; border-radius: 999px; background: #eee; }
+button { cursor: pointer; }
+</style>
+</head>
+<body>
+<h1>CRUD Materias</h1>
+<p class="pill">API: <code>/api/materias</code></p>
+<!-- Crear -->
+<form id="form-crear">
+<h3>Crear tarea</h3>
+<div class="fila">
+<input id="titulo-nueva" type="text" placeholder="Título de la tarea" />
+<button type="submit">Crear</button>
+</div>
+</form>
+<!-- Lista -->
+<div class="card">
+<h3>Listado</h3>
+<div id="lista"></div>
+</div>
+<script>
+const API = '/api/materias';
+const lista = document.getElementById('lista');
+const formCrear = document.getElementById('form-crear');
+const tituloNueva = document.getElementById('titulo-nueva');
+// 1) Traer todas
+async function cargar() {
+const res = await fetch(API);
+const data = await res.json();
+
+render(data);
+}
+// 2) Dibujar la lista
+function render(materias) {
+lista.innerHTML = '';
+if (!materias.length) {
+lista.innerHTML = '<p>No hay materias todavía.</p>';
+return;
+}
+for (const t of materias) {
+const fila = document.createElement('div');
+fila.className = 'fila';
+// Checkbox hecho
+const chk = document.createElement('input');
+chk.type = 'checkbox';
+chk.checked = t.hecho;
+chk.title = 'Marcar hecho';
+chk.addEventListener('change', () => actualizarHecho(t.id, chk.checked));
+// Input editable para el título
+const input = document.createElement('input');
+input.type = 'text';
+input.value = t.titulo;
+input.addEventListener('change', () => actualizarTitulo(t.id, input.value));
+// Botón borrar
+const btnDel = document.createElement('button');
+btnDel.textContent = 'Borrar';
+btnDel.addEventListener('click', () => borrar(t.id));
+// ID visible
+const idTag = document.createElement('span');
+idTag.className = 'pill';
+idTag.textContent = `id:${t.id}`;
+fila.append(chk, input, btnDel, idTag);
+lista.appendChild(fila);
+}
+}
+// 3) Crear
+formCrear.addEventListener('submit', async (e) => {
+e.preventDefault();
+const titulo = tituloNueva.value.trim();
+if (!titulo) return;
+
+await fetch(API, {
+method: 'POST',
+headers: { 'Content-Type': 'application/json' },
+body: JSON.stringify({ titulo })
+});
+tituloNueva.value = '';
+cargar();
+});
+// 4) Actualizar título (PUT)
+async function actualizarTitulo(id, nuevoTitulo) {
+if (!nuevoTitulo.trim()) return alert('El título no puede estar vacío');
+await fetch(`${API}/${id}`, {
+method: 'PUT',
+headers: { 'Content-Type': 'application/json' },
+body: JSON.stringify({ titulo: nuevoTitulo })
+});
+cargar();
+}
+// 5) Actualizar hecho (PUT)
+async function actualizarHecho(id, hecho) {
+await fetch(`${API}/${id}`, {
+method: 'PUT',
+headers: { 'Content-Type': 'application/json' },
+body: JSON.stringify({ titulo: 'tmp', hecho }) // "titulo" es requerido por el backend
+});
+// Para no perder el título verdadero, refetch completo:
+cargar();
+}
+// 6) Borrar (DELETE)
+async function borrar(id) {
+await fetch(`${API}/${id}`, { method: 'DELETE' });
+cargar();
+}
+// Arranque inicial
+cargar();
+</script>
+</body>
+</html>
